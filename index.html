@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Essencial: JavaScript — By OJuanDev</title>
+<meta name="description" content="Do primeiro console.log() às fronteiras assíncronas do motor V8 — uma apostila de engenharia frontend para quem quer entender JavaScript na raiz.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080808;
+  --bg-alt:#111110;
+  --bg-card:#131312;
+  --text:#f4f4ef;
+  --muted:#9c9c95;
+  --muted-2:#6c6c66;
+  --accent:#c8f050;
+  --accent-dim:#8fae3c;
+  --line:#242420;
+  --line-soft:#1a1a17;
+  --warn:#ff5f56;
+  --info:#7fb2ff;
+  --radius:10px;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',system-ui,sans-serif;
+  --serif:'Newsreader',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  min-height:100dvh;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{max-width:100%;display:block;}
+a{color:inherit;}
+::selection{background:var(--accent);color:#0a0a08;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:var(--muted-2);}
+
+/* ---------- topbar ---------- */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 28px;
+  background:linear-gradient(to bottom, rgba(8,8,8,.92), rgba(8,8,8,0));
+  pointer-events:none;
+}
+.topbar *{pointer-events:auto;}
+.brand{
+  font-family:var(--mono);
+  font-weight:600;
+  font-size:13px;
+  letter-spacing:.14em;
+  color:var(--text);
+}
+.brand span{color:var(--accent);}
+.btn-toc{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:13px;
+  font-weight:600;
+  padding:9px 16px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:border-color .2s ease, color .2s ease;
+}
+.btn-toc:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ---------- pages track ---------- */
+.viewport{position:fixed;inset:0;overflow:hidden;}
+.track{
+  display:flex;
+  height:100dvh;
+  width:max-content;
+  transition:transform .55s cubic-bezier(.65,0,.35,1);
+  will-change:transform;
+}
+.page{
+  width:100vw;height:100dvh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-gutter:stable;
+  padding:96px 8vw 140px;
+  position:relative;
+}
+.page-inner{max-width:880px;margin:0 auto;}
+.page--center{display:flex;align-items:center;}
+.page--center .page-inner{margin:auto;}
+
+.eyebrow{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:18px;
+}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent);}
+
+h1,h2,h3,h4{font-family:var(--sans);font-weight:800;line-height:1.08;letter-spacing:-.02em;margin:0 0 .5em;}
+em, .accent-em{font-family:var(--serif);font-style:italic;font-weight:500;color:var(--accent);}
+.h-cover{font-size:clamp(2.6rem,7vw,5.2rem);}
+.h-module{font-size:clamp(2rem,4.6vw,3.2rem);}
+p{color:var(--muted);line-height:1.75;font-size:1.02rem;margin:0 0 1.1em;}
+strong{color:var(--text);font-weight:650;}
+code:not(pre code){
+  font-family:var(--mono);
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  color:var(--accent);
+  padding:.14em .42em;
+  border-radius:5px;
+  font-size:.88em;
+}
+
+/* ---------- cover ---------- */
+.cover-meta{
+  display:flex;flex-wrap:wrap;gap:38px;
+  margin-top:44px;padding-top:32px;
+  border-top:1px solid var(--line);
+}
+.cover-meta div b{
+  display:block;font-family:var(--mono);color:var(--accent);
+  font-size:1.05rem;margin-bottom:4px;
+}
+.cover-meta div span{font-size:.82rem;color:var(--muted-2);}
+.cover-hint{
+  position:absolute;bottom:56px;left:8vw;
+  font-family:var(--mono);font-size:12px;color:var(--muted-2);
+  display:flex;align-items:center;gap:10px;
+}
+.kbd{
+  border:1px solid var(--line);border-radius:6px;
+  padding:2px 8px;font-family:var(--mono);font-size:11px;color:var(--muted);
+}
+
+/* ---------- sumario ---------- */
+.toc-list{list-style:none;margin:34px 0 0;padding:0;border-top:1px solid var(--line);}
+.toc-list li{border-bottom:1px solid var(--line);}
+.toc-list a{
+  display:flex;align-items:baseline;gap:18px;
+  padding:18px 4px;text-decoration:none;
+  transition:padding-left .2s ease;
+}
+.toc-list a:hover{padding-left:10px;}
+.toc-num{font-family:var(--mono);color:var(--muted-2);font-size:.85rem;width:26px;flex-shrink:0;}
+.toc-title{font-weight:650;font-size:1.05rem;}
+.toc-desc{color:var(--muted-2);font-size:.85rem;margin-left:auto;text-align:right;max-width:340px;}
+.toc-list a:hover .toc-title{color:var(--accent);}
+
+/* ---------- callouts ---------- */
+.callout{
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent);
+  background:var(--bg-card);
+  border-radius:0 var(--radius) var(--radius) 0;
+  padding:18px 22px;margin:26px 0;
+}
+.callout--warn{border-left-color:var(--warn);}
+.callout--info{border-left-color:var(--info);}
+.callout h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin-bottom:8px;color:var(--accent);}
+.callout--warn h4{color:var(--warn);}
+.callout--info h4{color:var(--info);}
+.callout p{margin:0;font-size:.95rem;color:var(--muted);}
+
+/* ---------- code blocks ---------- */
+.code-block{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin:22px 0;
+  background:#0c0c0b;
+}
+.code-tag{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 16px;
+  background:var(--bg-alt);
+  border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:12px;color:var(--muted-2);
+}
+.code-dots{display:flex;gap:6px;}
+.code-dots span{width:8px;height:8px;border-radius:50%;background:var(--line);}
+.code-block pre{
+  margin:0;padding:18px 20px;overflow-x:auto;
+  font-family:var(--mono);font-size:.85rem;line-height:1.65;
+}
+.code-block code{color:#dedcd2;}
+.tok-kw{color:#ff8fa3;}
+.tok-str{color:var(--accent);}
+.tok-com{color:var(--muted-2);font-style:italic;}
+.tok-fn{color:var(--info);}
+.tok-num{color:#ffb86c;}
+
+/* ---------- tables ---------- */
+.table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:var(--radius);}
+table{border-collapse:collapse;width:100%;font-size:.88rem;}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top;}
+th{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);background:var(--bg-card);}
+td{color:var(--muted);}
+td code{white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+
+.section-tag{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted-2);margin:38px 0 8px;
+}
+h3{font-size:1.35rem;margin-top:8px;}
+.lede{font-size:1.08rem;color:var(--muted);}
+
+/* ---------- pomodoro page ---------- */
+.pomo-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:28px;}
+@media(max-width:860px){.pomo-grid{grid-template-columns:1fr;}}
+.pomo-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-card);padding:26px;}
+.pomo-card h3{font-size:1rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:20px;}
+.player{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:14px;}
+.player-label{display:flex;align-items:center;gap:8px;padding:10px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);}
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+iframe.lofi{width:100%;height:150px;border:0;display:block;background:#000;}
+
+.timer-display{
+  font-family:var(--mono);font-size:3.6rem;font-weight:600;text-align:center;
+  color:var(--text);letter-spacing:.02em;margin:6px 0 4px;
+}
+.timer-mode{text-align:center;font-family:var(--mono);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:18px;}
+.timer-actions{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+.tbtn{
+  border:1px solid var(--line);background:transparent;color:var(--text);
+  font-family:var(--sans);font-weight:600;font-size:.86rem;
+  padding:10px 18px;border-radius:8px;cursor:pointer;transition:all .18s ease;
+}
+.tbtn:hover{border-color:var(--accent);color:var(--accent);}
+.tbtn--primary{background:var(--accent);color:#0a0a08;border-color:var(--accent);}
+.tbtn--primary:hover{background:#dbfd7a;color:#0a0a08;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted);}
+.switch{position:relative;width:38px;height:22px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:var(--line);border-radius:22px;cursor:pointer;transition:.2s;}
+.slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.2s;}
+.switch input:checked + .slider{background:var(--accent-dim);}
+.switch input:checked + .slider::before{transform:translateX(16px);background:#0a0a08;}
+.field-row{display:flex;gap:12px;margin-top:14px;}
+.field{flex:1;}
+.field label{display:block;font-size:.72rem;font-family:var(--mono);color:var(--muted-2);text-transform:uppercase;margin-bottom:6px;}
+.field input{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;
+  color:var(--text);font-family:var(--mono);padding:8px 10px;font-size:.9rem;
+}
+.field input:focus{outline:none;border-color:var(--accent);}
+.cycles-count{margin-top:16px;font-size:.82rem;color:var(--muted-2);font-family:var(--mono);}
+
+/* ---------- glossario ---------- */
+.gloss-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin-top:24px;}
+@media(max-width:760px){.gloss-grid{grid-template-columns:1fr;}}
+.gloss-item{padding:16px 0;border-bottom:1px solid var(--line);}
+.gloss-item dt{font-family:var(--mono);color:var(--accent);font-weight:600;font-size:.95rem;margin-bottom:4px;}
+.gloss-item dd{margin:0;color:var(--muted);font-size:.86rem;line-height:1.6;}
+
+/* ---------- footer of page / closing ---------- */
+.closing{text-align:center;}
+.closing p{max-width:520px;margin:0 auto 8px;}
+
+/* ---------- bottom nav ---------- */
+.bottombar{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 28px;
+  background:linear-gradient(to top, rgba(8,8,8,.94), rgba(8,8,8,0));
+  pointer-events:none;
+}
+.bottombar *{pointer-events:auto;}
+.navbtns{display:flex;gap:10px;}
+.arrowbtn{
+  width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--line);background:var(--bg-card);
+  color:var(--text);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color .18s ease,color .18s ease;
+}
+.arrowbtn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.arrowbtn:disabled{opacity:.3;cursor:not-allowed;}
+.counter{
+  font-family:var(--mono);font-size:13px;color:var(--muted);
+  display:flex;align-items:center;gap:10px;
+}
+.counter b{color:var(--text);}
+.progress-track{width:120px;height:2px;background:var(--line);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);transition:width .5s ease;}
+
+/* ---------- TOC modal ---------- */
+.modal-overlay{
+  position:fixed;inset:0;z-index:80;
+  background:rgba(6,6,5,.86);
+  backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s ease;
+  padding:24px;
+}
+.modal-overlay.open{opacity:1;pointer-events:auto;}
+.modal-box{
+  width:100%;max-width:560px;max-height:80vh;overflow-y:auto;
+  background:var(--bg-alt);border:1px solid var(--line);border-radius:14px;
+  padding:28px;
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.modal-head h3{font-size:1.1rem;margin:0;}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:15px;
+}
+.modal-close:hover{color:var(--accent);border-color:var(--accent);}
+.jump-list{list-style:none;margin:0;padding:0;}
+.jump-list li button{
+  width:100%;display:flex;align-items:center;gap:14px;
+  background:transparent;border:0;border-bottom:1px solid var(--line-soft);
+  color:var(--text);text-align:left;padding:12px 6px;cursor:pointer;font-family:var(--sans);font-size:.92rem;
+}
+.jump-list li button:hover{color:var(--accent);}
+.jump-list li:last-child button{border-bottom:0;}
+.jump-num{font-family:var(--mono);color:var(--muted-2);font-size:.78rem;width:22px;}
+
+/* ---------- break modal ---------- */
+.break-overlay{
+  position:fixed;inset:0;z-index:90;
+  background:rgba(6,6,5,.92);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s ease;
+}
+.break-overlay.open{opacity:1;pointer-events:auto;}
+.break-box{text-align:center;max-width:400px;padding:20px;}
+.break-icon{font-size:2.6rem;margin-bottom:14px;}
+.break-box h3{font-size:1.6rem;margin-bottom:10px;}
+.break-box p{margin-bottom:22px;}
+.break-count{font-family:var(--mono);color:var(--accent);font-size:.85rem;margin-bottom:20px;}
+
+@media(max-width:640px){
+  .page{padding:88px 6vw 160px;}
+  .cover-meta{gap:24px;}
+  .cover-hint{display:none;}
+  .toc-desc{display:none;}
+  .pomo-grid{gap:22px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">OJUANDEV<span>.</span></div>
+  <button class="btn-toc" id="openToc">☰ Sumário</button>
+</div>
+
+<div class="viewport">
+  <div class="track" id="track">
+
+    <!-- PAGE 0 — CAPA -->
+    <section class="page page--center">
+      <div class="page-inner">
+        <div class="eyebrow">Edição 01 — Guia Definitivo</div>
+        <h1 class="h-cover">Essencial<br><em>JavaScript</em></h1>
+        <p class="lede" style="max-width:560px;margin-top:18px;">Do primeiro <code>console.log()</code> às fronteiras assíncronas do motor V8 — uma apostila de engenharia frontend para quem quer entender a linguagem que roda a web, não apenas decorar sintaxe.</p>
+        <div class="cover-meta">
+          <div><b>By OJuanDev</b><span>Autoria &amp; Direção Técnica</span></div>
+          <div><b>10 Módulos</b><span>Do básico ao extremo avançado</span></div>
+          <div><b>2026</b><span>ECMAScript atualizado</span></div>
+        </div>
+      </div>
+      <div class="cover-hint"><span class="kbd">←</span><span class="kbd">→</span> navegue entre as páginas, ou role o mouse</div>
+    </section>
+
+    <!-- PAGE 1 — SUMARIO -->
+    <section class="page">
+      <div class="page-inner">
+        <div class="eyebrow">Índice</div>
+        <h2 class="h-module">Sumário</h2>
+        <p class="lede">Toque em qualquer item para ir direto à página. Os módulos seguem uma progressão lógica — do fundamento à fronteira da especificação.</p>
+        <ul class="toc-list" id="tocListMain"></ul>
+      </div>
+    </section>
+
+    <!-- PAGE 2 — POMODORO -->
+    <section class="page">
+      <div class="page-inner">
+        <div class="eyebrow">Ambiente sonoro &amp; foco</div>
+        <h2 class="h-module">Música <em>Lofi</em> + Pomodoro</h2>
+        <p class="lede">Uma trilha sonora ambiente combinada com um temporizador Pomodoro — ferramenta ideal para manter o foco durante seus estudos de JavaScript.</p>
+
+        <div class="pomo-grid">
+          <div class="pomo-card">
+            <h3>Tocando agora — Lofi Café</h3>
+            <div class="player">
+              <div class="player-label"><span class="dot-live"></span> ao vivo · lofi beats</div>
+              <iframe title="Lofi Cafe radio player" src="https://loficafe.net/embed/chilling?utm_source=embed&amp;utm_medium=iframe&amp;utm_campaign=station_embed" width="400" height="80" loading="lazy" allow="autoplay" style="border:0;border-radius:12px;max-width:100%"></iframe>
+            </div>
+            <div class="callout" style="margin-top:18px;">
+              <h4>Dica de produtividade</h4>
+              <p>A técnica Pomodoro alterna períodos de foco intenso com pausas curtas, mantendo a mente fresca por mais tempo. Use a música lo-fi como pano de fundo para entrar no estado de fluxo enquanto estuda closures, promises ou o event loop.</p>
+            </div>
+          </div>
+
+          <div class="pomo-card">
+            <h3 id="timerModeLabel">⚡ Foco</h3>
+            <div class="timer-display" id="timerDisplay">25:00</div>
+            <div class="timer-actions">
+              <button class="tbtn tbtn--primary" id="btnStart">▶ Iniciar</button>
+              <button class="tbtn" id="btnReset">↺ Reset</button>
+              <button class="tbtn" id="btnSkip">⏭ Pular</button>
+            </div>
+            <div class="toggle-row">
+              <span>Modo automático (ciclos contínuos)</span>
+              <label class="switch"><input type="checkbox" id="autoMode" checked><span class="slider"></span></label>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Foco (min)</label><input type="number" id="focusMin" value="25" min="1" max="90"></div>
+              <div class="field"><label>Pausa (min)</label><input type="number" id="breakMin" value="5" min="1" max="60"></div>
+              <div class="field"><label>Pausa Longa (min)</label><input type="number" id="longBreakMin" value="15" min="1" max="60"></div>
+            </div>
+            <div class="cycles-count">Ciclos completados: <span id="cycleCount">0</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULES injected by JS-authored static markup below -->
+    <!-- PAGE 3 — MODULO 1 -->
+    <section class="page" id="modulo-1">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 01 — Fundação</div>
+        <h2 class="h-module">Fundamentos do <em>JavaScript</em></h2>
+        <p class="lede">JavaScript não é apenas "a linguagem que anima páginas". É uma linguagem dinamicamente tipada, multi-paradigma e single-threaded, com um modelo de execução assíncrona que a diferencia de quase tudo que veio antes dela. Entender essa base é o que separa quem escreve código que funciona de quem escreve código que <em>se sustenta</em>.</p>
+
+        <h3>Declarando variáveis: var, let e const</h3>
+        <p>As três formas de declarar uma variável coexistem no motor, mas têm regras de escopo e hoisting completamente diferentes. Na prática moderna, <code>const</code> é o padrão, <code>let</code> é a exceção quando a variável precisa mudar, e <code>var</code> é praticamente legado.</p>
+
+        <div class="code-block">
+          <div class="code-tag"><span>variaveis.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-com">// var é function-scoped e sofre hoisting com valor "undefined"</span>
+<span class="tok-kw">var</span> nome = <span class="tok-str">"Ana"</span>;
+
+<span class="tok-com">// let é block-scoped, não pode ser redeclarada no mesmo escopo</span>
+<span class="tok-kw">let</span> idade = <span class="tok-num">28</span>;
+idade = <span class="tok-num">29</span>; <span class="tok-com">// pode ser reatribuída</span>
+
+<span class="tok-com">// const é block-scoped e imutável na ligação (o valor pode mudar se for objeto)</span>
+<span class="tok-kw">const</span> PI = <span class="tok-num">3.14159</span>;
+<span class="tok-kw">const</span> usuario = { nome: <span class="tok-str">"Ana"</span> };
+usuario.nome = <span class="tok-str">"Bia"</span>; <span class="tok-com">// válido: a referência não mudou</span></code></pre>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Palavra-chave</th><th>Escopo</th><th>Hoisting</th><th>Reatribuição</th></tr></thead>
+            <tbody>
+              <tr><td><code>var</code></td><td>Função</td><td>Sim, inicializada como <code>undefined</code></td><td>Sim</td></tr>
+              <tr><td><code>let</code></td><td>Bloco</td><td>Sim, mas em "temporal dead zone"</td><td>Sim</td></tr>
+              <tr><td><code>const</code></td><td>Bloco</td><td>Sim, mas em "temporal dead zone"</td><td>Não</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Tipos primitivos e coerção</h3>
+        <p>JavaScript tem sete tipos primitivos: <code>string</code>, <code>number</code>, <code>boolean</code>, <code>undefined</code>, <code>null</code>, <code>bigint</code> e <code>symbol</code>. Todo o resto — arrays, objetos, funções — é do tipo <code>object</code> por baixo dos panos. A coerção de tipos acontece quando operadores forçam a conversão implícita entre eles.</p>
+
+        <div class="code-block">
+          <div class="code-tag"><span>coercao.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-num">1</span> + <span class="tok-str">"1"</span>        <span class="tok-com">// "11" — number vira string</span>
+<span class="tok-str">"5"</span> - <span class="tok-num">1</span>        <span class="tok-com">// 4   — string vira number</span>
+<span class="tok-num">0</span> == <span class="tok-str">"0"</span>       <span class="tok-com">// true  — coerção de tipo</span>
+<span class="tok-num">0</span> === <span class="tok-str">"0"</span>      <span class="tok-com">// false — sem coerção, tipos diferentes</span>
+Boolean(<span class="tok-str">""</span>)     <span class="tok-com">// false — string vazia é falsy</span>
+Boolean(<span class="tok-str">"0"</span>)    <span class="tok-com">// true  — string "0" é truthy!</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <h4>Erro comum</h4>
+          <p>Usar <code>==</code> (igualdade solta) por hábito. Prefira sempre <code>===</code> (igualdade estrita) — ela compara valor <em>e</em> tipo, eliminando uma classe inteira de bugs sutis de coerção.</p>
+        </div>
+
+        <div class="callout">
+          <h4>Por que isso importa</h4>
+          <p>Entender <em>truthy</em> e <em>falsy</em> evita bugs em condicionais: apenas <code>false</code>, <code>0</code>, <code>""</code>, <code>null</code>, <code>undefined</code> e <code>NaN</code> são falsy — absolutamente tudo mais, incluindo <code>"0"</code> e arrays vazios <code>[]</code>, é truthy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4 — MODULO 2 -->
+    <section class="page" id="modulo-2">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 02 — Fluxo de execução</div>
+        <h2 class="h-module">Estruturas de Controle &amp; <em>Funções</em></h2>
+        <p class="lede">Controlar o fluxo de execução e organizar comportamento em funções reutilizáveis é o que transforma uma sequência de instruções em um programa de verdade.</p>
+
+        <h3>Condicionais e laços</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>controle.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">0</span>; i &lt; <span class="tok-num">3</span>; i++) {
+  console.log(i); <span class="tok-com">// 0, 1, 2</span>
+}
+
+<span class="tok-kw">const</span> frutas = [<span class="tok-str">"maçã"</span>, <span class="tok-str">"pera"</span>, <span class="tok-str">"uva"</span>];
+<span class="tok-kw">for</span> (<span class="tok-kw">const</span> fruta <span class="tok-kw">of</span> frutas) {
+  console.log(fruta); <span class="tok-com">// itera sobre valores</span>
+}
+
+<span class="tok-kw">switch</span> (status) {
+  <span class="tok-kw">case</span> <span class="tok-str">"ativo"</span>:
+    console.log(<span class="tok-str">"Usuário ativo"</span>);
+    <span class="tok-kw">break</span>;
+  <span class="tok-kw">default</span>:
+    console.log(<span class="tok-str">"Status desconhecido"</span>);
+}</code></pre>
+        </div>
+
+        <h3>Três formas de declarar uma função</h3>
+        <p>A escolha entre elas não é estética: cada uma tem comportamento diferente de hoisting e de ligação do <code>this</code> — este último é aprofundado no Módulo 05.</p>
+
+        <div class="code-block">
+          <div class="code-tag"><span>funcoes.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-com">// declaração de função — sofre hoisting completo</span>
+<span class="tok-kw">function</span> <span class="tok-fn">somar</span>(a, b) {
+  <span class="tok-kw">return</span> a + b;
+}
+
+<span class="tok-com">// expressão de função — não sofre hoisting</span>
+<span class="tok-kw">const</span> subtrair = <span class="tok-kw">function</span>(a, b) {
+  <span class="tok-kw">return</span> a - b;
+};
+
+<span class="tok-com">// arrow function — sintaxe enxuta, sem "this" próprio</span>
+<span class="tok-kw">const</span> multiplicar = (a, b) =&gt; a * b;
+
+<span class="tok-com">// parâmetros default e rest</span>
+<span class="tok-kw">function</span> <span class="tok-fn">criarPedido</span>(cliente, ...itens) {
+  <span class="tok-kw">return</span> { cliente, itens };
+}</code></pre>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Forma</th><th>Hoisting</th><th>this próprio</th><th>Uso típico</th></tr></thead>
+            <tbody>
+              <tr><td>Declaração</td><td>Sim, completo</td><td>Sim</td><td>Funções nomeadas de alto nível</td></tr>
+              <tr><td>Expressão</td><td>Não</td><td>Sim</td><td>Atribuição condicional, callbacks</td></tr>
+              <tr><td>Arrow function</td><td>Não</td><td>Não (herda do escopo léxico)</td><td>Callbacks curtos, métodos que precisam do this externo</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--info">
+          <h4>Regra prática</h4>
+          <p>Se a função precisa do seu próprio <code>this</code> (métodos de objeto, construtores), use função tradicional. Se ela só precisa "emprestar" o <code>this</code> do escopo ao redor (callbacks dentro de métodos), use arrow function.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5 — MODULO 3 -->
+    <section class="page" id="modulo-3">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 03 — Estruturas de dados</div>
+        <h2 class="h-module">Arrays, Objetos &amp; <em>Desestruturação</em></h2>
+        <p class="lede">Quase todo dado que circula em uma aplicação JavaScript passa por um array ou um objeto. Dominar os métodos funcionais de array e a sintaxe de desestruturação elimina a maior parte dos loops manuais e do código repetitivo.</p>
+
+        <h3>Métodos funcionais de array</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>arrays.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> produtos = [
+  { nome: <span class="tok-str">"Mouse"</span>, preco: <span class="tok-num">80</span> },
+  { nome: <span class="tok-str">"Teclado"</span>, preco: <span class="tok-num">220</span> },
+  { nome: <span class="tok-str">"Monitor"</span>, preco: <span class="tok-num">950</span> },
+];
+
+<span class="tok-kw">const</span> nomes = produtos.<span class="tok-fn">map</span>(p =&gt; p.nome);
+<span class="tok-kw">const</span> caros = produtos.<span class="tok-fn">filter</span>(p =&gt; p.preco &gt; <span class="tok-num">100</span>);
+<span class="tok-kw">const</span> total = produtos.<span class="tok-fn">reduce</span>((soma, p) =&gt; soma + p.preco, <span class="tok-num">0</span>);
+<span class="tok-kw">const</span> monitor = produtos.<span class="tok-fn">find</span>(p =&gt; p.nome === <span class="tok-str">"Monitor"</span>);
+<span class="tok-kw">const</span> temCaro = produtos.<span class="tok-fn">some</span>(p =&gt; p.preco &gt; <span class="tok-num">500</span>);</code></pre>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Método</th><th>Retorna</th><th>Uso</th></tr></thead>
+            <tbody>
+              <tr><td><code>map()</code></td><td>Novo array</td><td>Transformar cada item</td></tr>
+              <tr><td><code>filter()</code></td><td>Novo array</td><td>Selecionar itens por condição</td></tr>
+              <tr><td><code>reduce()</code></td><td>Valor único</td><td>Acumular/agregar dados</td></tr>
+              <tr><td><code>find()</code></td><td>Item ou undefined</td><td>Buscar o primeiro que casa</td></tr>
+              <tr><td><code>sort()</code></td><td>Array (muta o original!)</td><td>Ordenar — sempre passe um comparador</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Desestruturação e spread</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>destructuring.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> usuario = { nome: <span class="tok-str">"Léo"</span>, cidade: <span class="tok-str">"Recife"</span>, idade: <span class="tok-num">31</span> };
+
+<span class="tok-com">// desestruturação de objeto, com renomeação e default</span>
+<span class="tok-kw">const</span> { nome, cidade: local = <span class="tok-str">"desconhecida"</span> } = usuario;
+
+<span class="tok-com">// desestruturação de array</span>
+<span class="tok-kw">const</span> [primeiro, segundo] = [<span class="tok-str">"a"</span>, <span class="tok-str">"b"</span>, <span class="tok-str">"c"</span>];
+
+<span class="tok-com">// spread para copiar/mesclar sem mutar o original</span>
+<span class="tok-kw">const</span> atualizado = { ...usuario, idade: <span class="tok-num">32</span> };
+<span class="tok-kw">const</span> combinada = [...frutas, <span class="tok-str">"manga"</span>];</code></pre>
+        </div>
+
+        <div class="callout">
+          <h4>Por que isso importa</h4>
+          <p>Spread (<code>...</code>) cria uma cópia rasa (<em>shallow copy</em>). Objetos aninhados continuam sendo referenciados — um erro comum ao tentar imutabilidade "de verdade" em estruturas profundas.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6 — MODULO 4 -->
+    <section class="page" id="modulo-4">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 04 — Interface com a página</div>
+        <h2 class="h-module">DOM, Eventos &amp; <em>Manipulação</em></h2>
+        <p class="lede">O DOM (Document Object Model) é a representação em árvore do HTML que o JavaScript pode ler e modificar em tempo real. É essa ponte que transforma uma página estática em uma aplicação interativa.</p>
+
+        <h3>Selecionando e criando elementos</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>dom.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> botao = document.<span class="tok-fn">querySelector</span>(<span class="tok-str">".botao-salvar"</span>);
+<span class="tok-kw">const</span> itens = document.<span class="tok-fn">querySelectorAll</span>(<span class="tok-str">".item"</span>);
+
+<span class="tok-kw">const</span> card = document.<span class="tok-fn">createElement</span>(<span class="tok-str">"div"</span>);
+card.classList.<span class="tok-fn">add</span>(<span class="tok-str">"card"</span>, <span class="tok-str">"card--novo"</span>);
+card.textContent = <span class="tok-str">"Olá, DOM"</span>;
+document.body.<span class="tok-fn">appendChild</span>(card);</code></pre>
+        </div>
+
+        <h3>Eventos e delegação</h3>
+        <p>Anexar um listener a cada item de uma lista longa é ineficiente e não funciona para itens adicionados depois. A <strong>delegação de eventos</strong> resolve isso: você escuta no elemento pai e usa <code>event.target</code> para identificar o item real que disparou o evento.</p>
+
+        <div class="code-block">
+          <div class="code-tag"><span>eventos.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> lista = document.<span class="tok-fn">querySelector</span>(<span class="tok-str">".lista"</span>);
+
+lista.<span class="tok-fn">addEventListener</span>(<span class="tok-str">"click"</span>, (event) =&gt; {
+  <span class="tok-kw">const</span> item = event.target.<span class="tok-fn">closest</span>(<span class="tok-str">".item"</span>);
+  <span class="tok-kw">if</span> (!item) <span class="tok-kw">return</span>; <span class="tok-com">// clique fora de um item — ignora</span>
+
+  console.log(<span class="tok-str">"Item clicado:"</span>, item.dataset.id);
+});</code></pre>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Evento</th><th>Dispara quando</th></tr></thead>
+            <tbody>
+              <tr><td><code>click</code></td><td>Clique do usuário</td></tr>
+              <tr><td><code>input</code></td><td>Valor de um campo muda, a cada tecla</td></tr>
+              <tr><td><code>submit</code></td><td>Formulário é enviado</td></tr>
+              <tr><td><code>DOMContentLoaded</code></td><td>HTML foi totalmente parseado</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--warn">
+          <h4>Atenção</h4>
+          <p>Eventos como <code>click</code> fazem <em>bubbling</em>: sobem do elemento clicado até o <code>document</code>. Use <code>event.stopPropagation()</code> com moderação — abusar dele quebra a delegação de eventos em componentes pais.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 7 — MODULO 5 -->
+    <section class="page" id="modulo-5">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 05 — O motor por dentro</div>
+        <h2 class="h-module">Escopo, Closures &amp; <em>this</em></h2>
+        <p class="lede">Estes são os conceitos que mais geram confusão em JavaScript — e também os que mais distinguem quem entende a linguagem de quem apenas a usa por tentativa e erro.</p>
+
+        <h3>Closures: funções que lembram</h3>
+        <p>Uma <em>closure</em> acontece quando uma função "lembra" o escopo léxico em que foi criada, mesmo depois que esse escopo já terminou de executar.</p>
+
+        <div class="code-block">
+          <div class="code-tag"><span>closures.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">function</span> <span class="tok-fn">criarContador</span>() {
+  <span class="tok-kw">let</span> contagem = <span class="tok-num">0</span>;
+
+  <span class="tok-kw">return</span> <span class="tok-kw">function</span>() {
+    contagem++;
+    <span class="tok-kw">return</span> contagem;
+  };
+}
+
+<span class="tok-kw">const</span> contador = <span class="tok-fn">criarContador</span>();
+contador(); <span class="tok-com">// 1</span>
+contador(); <span class="tok-com">// 2 — "contagem" persiste entre chamadas</span></code></pre>
+        </div>
+
+        <div class="callout">
+          <h4>Por que isso importa</h4>
+          <p>Closures são a base de padrões como <em>debounce</em>, <em>memoization</em>, módulos com estado privado e a maioria dos custom hooks de bibliotecas de UI modernas.</p>
+        </div>
+
+        <h3>this: o parâmetro implícito</h3>
+        <p>O valor de <code>this</code> não é fixo — ele depende de <em>como</em> a função é chamada, não de onde foi definida (exceto em arrow functions).</p>
+
+        <div class="code-block">
+          <div class="code-tag"><span>this.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> pessoa = {
+  nome: <span class="tok-str">"Rui"</span>,
+  saudar() {
+    console.log(<span class="tok-str">`Olá, sou ${this.nome}`</span>); <span class="tok-com">// this = pessoa</span>
+  },
+};
+
+<span class="tok-kw">const</span> saudarSolto = pessoa.saudar;
+saudarSolto(); <span class="tok-com">// this = undefined (modo estrito) — erro!</span>
+
+<span class="tok-com">// bind fixa o valor de "this" permanentemente</span>
+<span class="tok-kw">const</span> saudarFixo = pessoa.saudar.<span class="tok-fn">bind</span>(pessoa);
+saudarFixo(); <span class="tok-com">// funciona: this = pessoa</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <h4>Erro comum</h4>
+          <p>Passar um método de objeto diretamente como callback (<code>setTimeout(pessoa.saudar, 1000)</code>) "perde" o <code>this</code>. Use uma arrow function wrapper (<code>() =&gt; pessoa.saudar()</code>) ou <code>.bind()</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 8 — MODULO 6 -->
+    <section class="page" id="modulo-6">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 06 — Tempo e concorrência</div>
+        <h2 class="h-module">Assincronismo: Promises &amp; <em>Async/Await</em></h2>
+        <p class="lede">JavaScript é single-threaded, mas não é bloqueante. Operações demoradas — requisições de rede, temporizadores, leitura de arquivos — são delegadas ao ambiente (navegador ou Node) e retornam via fila de callbacks, sem travar a thread principal.</p>
+
+        <h3>Do callback hell às Promises</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>promises.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">function</span> <span class="tok-fn">buscarUsuario</span>(id) {
+  <span class="tok-kw">return</span> <span class="tok-kw">new</span> Promise((resolve, reject) =&gt; {
+    setTimeout(() =&gt; {
+      <span class="tok-kw">if</span> (id &gt; <span class="tok-num">0</span>) resolve({ id, nome: <span class="tok-str">"Ana"</span> });
+      <span class="tok-kw">else</span> reject(<span class="tok-kw">new</span> Error(<span class="tok-str">"ID inválido"</span>));
+    }, <span class="tok-num">800</span>);
+  });
+}
+
+<span class="tok-fn">buscarUsuario</span>(<span class="tok-num">1</span>)
+  .<span class="tok-fn">then</span>(usuario =&gt; console.log(usuario))
+  .<span class="tok-fn">catch</span>(erro =&gt; console.error(erro))
+  .<span class="tok-fn">finally</span>(() =&gt; console.log(<span class="tok-str">"Concluído"</span>));</code></pre>
+        </div>
+
+        <h3>async/await: promises com sintaxe síncrona</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>async.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">async</span> <span class="tok-kw">function</span> <span class="tok-fn">carregarPerfil</span>(id) {
+  <span class="tok-kw">try</span> {
+    <span class="tok-kw">const</span> usuario = <span class="tok-kw">await</span> <span class="tok-fn">buscarUsuario</span>(id);
+    <span class="tok-kw">const</span> posts = <span class="tok-kw">await</span> <span class="tok-fn">buscarPosts</span>(usuario.id);
+    <span class="tok-kw">return</span> { usuario, posts };
+  } <span class="tok-kw">catch</span> (erro) {
+    console.error(<span class="tok-str">"Falha ao carregar perfil:"</span>, erro.message);
+    <span class="tok-kw">throw</span> erro;
+  }
+}
+
+<span class="tok-com">// executando promises em paralelo, não em série</span>
+<span class="tok-kw">const</span> [usuarios, produtos] = <span class="tok-kw">await</span> Promise.<span class="tok-fn">all</span>([
+  <span class="tok-fn">buscarUsuarios</span>(),
+  <span class="tok-fn">buscarProdutos</span>(),
+]);</code></pre>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Método estático</th><th>Comportamento</th></tr></thead>
+            <tbody>
+              <tr><td><code>Promise.all()</code></td><td>Resolve quando todas resolverem; rejeita se uma rejeitar</td></tr>
+              <tr><td><code>Promise.allSettled()</code></td><td>Sempre resolve, com status de cada uma (fulfilled/rejected)</td></tr>
+              <tr><td><code>Promise.race()</code></td><td>Resolve/rejeita assim que a primeira terminar</td></tr>
+              <tr><td><code>Promise.any()</code></td><td>Resolve com a primeira que tiver sucesso</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--info">
+          <h4>Regra prática</h4>
+          <p>Se duas chamadas assíncronas não dependem uma da outra, nunca as encadeie com <code>await</code> sequencial — dispare-as juntas com <code>Promise.all()</code> para paralelizar o tempo de espera.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 9 — MODULO 7 -->
+    <section class="page" id="modulo-7">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 07 — Organização de objetos</div>
+        <h2 class="h-module">Protótipos &amp; <em>Classes</em></h2>
+        <p class="lede">JavaScript usa herança prototípica — todo objeto tem uma referência interna a outro objeto (seu protótipo), formando uma cadeia. A sintaxe <code>class</code> introduzida no ES6 não muda esse modelo; ela é <em>syntactic sugar</em> sobre ele.</p>
+
+        <h3>A cadeia de protótipos</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>prototipos.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> animal = {
+  falar() { console.log(<span class="tok-str">`${this.nome} faz um som`</span>); }
+};
+
+<span class="tok-kw">const</span> cachorro = Object.<span class="tok-fn">create</span>(animal);
+cachorro.nome = <span class="tok-str">"Rex"</span>;
+cachorro.<span class="tok-fn">falar</span>(); <span class="tok-com">// "Rex faz um som" — herdado via protótipo</span></code></pre>
+        </div>
+
+        <h3>Classes: sintaxe moderna, mesmo motor</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>classes.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">class</span> Animal {
+  <span class="tok-com">#energia = 100;</span> <span class="tok-com">// campo privado — só acessível dentro da classe</span>
+
+  <span class="tok-kw">constructor</span>(nome) {
+    <span class="tok-kw">this</span>.nome = nome;
+  }
+
+  <span class="tok-fn">falar</span>() {
+    console.log(<span class="tok-str">`${this.nome} faz um som`</span>);
+  }
+
+  <span class="tok-kw">get</span> energia() {
+    <span class="tok-kw">return</span> <span class="tok-kw">this</span>.#energia;
+  }
+
+  <span class="tok-kw">static</span> <span class="tok-fn">criarSelvagem</span>() {
+    <span class="tok-kw">return</span> <span class="tok-kw">new</span> Animal(<span class="tok-str">"Selvagem"</span>);
+  }
+}
+
+<span class="tok-kw">class</span> Cachorro <span class="tok-kw">extends</span> Animal {
+  <span class="tok-fn">falar</span>() {
+    <span class="tok-kw">super</span>.<span class="tok-fn">falar</span>();
+    console.log(<span class="tok-str">`${this.nome} late: Au au!`</span>);
+  }
+}
+
+<span class="tok-kw">const</span> rex = <span class="tok-kw">new</span> Cachorro(<span class="tok-str">"Rex"</span>);
+rex.<span class="tok-fn">falar</span>();</code></pre>
+        </div>
+
+        <div class="callout">
+          <h4>Por que isso importa</h4>
+          <p>Campos privados (<code>#campo</code>) são reforçados pelo próprio motor JavaScript — diferente da convenção antiga de prefixar com underscore (<code>_campo</code>), que era só uma combinação, não uma barreira real.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 10 — MODULO 8 -->
+    <section class="page" id="modulo-8">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 08 — Escala e ecossistema</div>
+        <h2 class="h-module">Módulos ES6+ &amp; <em>Ecossistema Moderno</em></h2>
+        <p class="lede">Nenhuma aplicação real vive em um único arquivo. Módulos ES6 padronizaram como o código JavaScript se organiza, se importa e se compartilha entre arquivos, pacotes e times.</p>
+
+        <h3>import / export</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>matematica.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">export</span> <span class="tok-kw">function</span> <span class="tok-fn">somar</span>(a, b) {
+  <span class="tok-kw">return</span> a + b;
+}
+
+<span class="tok-kw">export</span> <span class="tok-kw">const</span> PI = <span class="tok-num">3.14159</span>;
+
+<span class="tok-kw">export</span> <span class="tok-kw">default</span> <span class="tok-kw">function</span> <span class="tok-fn">calcular</span>() { <span class="tok-com">/* ... */</span> }</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-tag"><span>app.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">import</span> <span class="tok-kw">calcular</span>, { somar, PI } <span class="tok-kw">from</span> <span class="tok-str">"./matematica.js"</span>;
+<span class="tok-kw">import</span> * <span class="tok-kw">as</span> matematica <span class="tok-kw">from</span> <span class="tok-str">"./matematica.js"</span>;</code></pre>
+        </div>
+
+        <p>No navegador, módulos exigem <code>&lt;script type="module"&gt;</code> — isso ativa escopo isolado por arquivo, <em>strict mode</em> automático e carregamento assíncrono nativo, sem poluir o escopo global.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ferramenta</th><th>Categoria</th><th>Papel</th></tr></thead>
+            <tbody>
+              <tr><td>Vite / esbuild</td><td>Bundler/dev server</td><td>Empacota módulos e acelera o ciclo de desenvolvimento</td></tr>
+              <tr><td>Babel</td><td>Transpilador</td><td>Converte JS moderno para versões compatíveis com navegadores antigos</td></tr>
+              <tr><td>npm / pnpm</td><td>Gerenciador de pacotes</td><td>Instala e versiona dependências de terceiros</td></tr>
+              <tr><td>TypeScript</td><td>Superset tipado</td><td>Adiciona tipagem estática que é removida na compilação</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--info">
+          <h4>Módulos vs Scripts clássicos</h4>
+          <p>Scripts tradicionais compartilham um único escopo global — variáveis de um arquivo vazam para outro. Módulos ES6 são isolados por padrão: tudo que não é explicitamente exportado permanece privado ao arquivo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 11 — MODULO 9 -->
+    <section class="page" id="modulo-9">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 09 — A fronteira funcional</div>
+        <h2 class="h-module">Iteradores, Generators &amp; <em>Padrões Funcionais</em></h2>
+        <p class="lede">Além dos loops comuns, JavaScript expõe um protocolo de iteração customizável e funções geradoras capazes de pausar e retomar sua própria execução — a base de bibliotecas de streams, efeitos assíncronos e estruturas de dados preguiçosas.</p>
+
+        <h3>O protocolo iterável</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>iteradores.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> faixa = {
+  inicio: <span class="tok-num">1</span>,
+  fim: <span class="tok-num">3</span>,
+  [Symbol.iterator]() {
+    <span class="tok-kw">let</span> atual = <span class="tok-kw">this</span>.inicio;
+    <span class="tok-kw">const</span> fim = <span class="tok-kw">this</span>.fim;
+    <span class="tok-kw">return</span> {
+      <span class="tok-fn">next</span>() {
+        <span class="tok-kw">return</span> atual &lt;= fim
+          ? { value: atual++, done: <span class="tok-kw">false</span> }
+          : { value: <span class="tok-kw">undefined</span>, done: <span class="tok-kw">true</span> };
+      }
+    };
+  }
+};
+
+<span class="tok-kw">for</span> (<span class="tok-kw">const</span> n <span class="tok-kw">of</span> faixa) console.log(n); <span class="tok-com">// 1, 2, 3</span></code></pre>
+        </div>
+
+        <h3>Generators: iteradores com sintaxe declarativa</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>generators.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">function</span>* <span class="tok-fn">contarAte</span>(max) {
+  <span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">1</span>; i &lt;= max; i++) {
+    <span class="tok-kw">yield</span> i; <span class="tok-com">// pausa a execução aqui até o próximo .next()</span>
+  }
+}
+
+<span class="tok-kw">const</span> gerador = <span class="tok-fn">contarAte</span>(<span class="tok-num">3</span>);
+gerador.<span class="tok-fn">next</span>(); <span class="tok-com">// { value: 1, done: false }</span>
+gerador.<span class="tok-fn">next</span>(); <span class="tok-com">// { value: 2, done: false }</span>
+
+<span class="tok-com">// generators também funcionam com async, para streams assíncronos</span>
+<span class="tok-kw">async</span> <span class="tok-kw">function</span>* <span class="tok-fn">paginasDaApi</span>(url) {
+  <span class="tok-kw">let</span> proxima = url;
+  <span class="tok-kw">while</span> (proxima) {
+    <span class="tok-kw">const</span> res = <span class="tok-kw">await</span> fetch(proxima);
+    <span class="tok-kw">const</span> dados = <span class="tok-kw">await</span> res.json();
+    <span class="tok-kw">yield</span> dados.itens;
+    proxima = dados.proximaPagina;
+  }
+}</code></pre>
+        </div>
+
+        <h3>Padrões funcionais: composição e currying</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>funcional.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> curry = fn =&gt; (...args) =&gt;
+  args.length &gt;= fn.length
+    ? fn(...args)
+    : (...resto) =&gt; curry(fn)(...args, ...resto);
+
+<span class="tok-kw">const</span> somar3 = (a, b, c) =&gt; a + b + c;
+<span class="tok-kw">const</span> somarCurried = curry(somar3);
+somarCurried(<span class="tok-num">1</span>)(<span class="tok-num">2</span>)(<span class="tok-num">3</span>); <span class="tok-com">// 6</span>
+
+<span class="tok-com">// composição: combina funções pequenas em um pipeline</span>
+<span class="tok-kw">const</span> compor = (...fns) =&gt; x =&gt; fns.<span class="tok-fn">reduceRight</span>((v, f) =&gt; f(v), x);</code></pre>
+        </div>
+
+        <div class="callout">
+          <h4>Por que isso importa</h4>
+          <p>Generators assíncronos são o mecanismo por trás de bibliotecas de streaming de dados e de efeitos observáveis — entender <code>yield</code> é o que torna código de fila e paginação legível sem gerenciar estado manualmente.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 12 — MODULO 10 -->
+    <section class="page" id="modulo-10">
+      <div class="page-inner">
+        <div class="eyebrow">Módulo 10 — Sob o capô do motor</div>
+        <h2 class="h-module">Event Loop, Performance &amp; <em>APIs Avançadas</em></h2>
+        <p class="lede">Entender exatamente como o motor JavaScript decide o que executar e quando é o que permite prever comportamento assíncrono, evitar travamentos de UI e diagnosticar vazamentos de memória.</p>
+
+        <h3>Call stack, microtasks e macrotasks</h3>
+        <p>O motor executa uma única call stack por vez. Quando ela esvazia, o event loop consulta primeiro a <strong>fila de microtasks</strong> (promises, <code>queueMicrotask</code>) até ela esvaziar por completo, e só então processa <strong>uma</strong> macrotask (timers, eventos de I/O) por ciclo.</p>
+
+        <div class="code-block">
+          <div class="code-tag"><span>eventloop.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code>console.log(<span class="tok-str">"1 — síncrono"</span>);
+
+setTimeout(() =&gt; console.log(<span class="tok-str">"4 — macrotask"</span>), <span class="tok-num">0</span>);
+
+Promise.<span class="tok-fn">resolve</span>().<span class="tok-fn">then</span>(() =&gt; console.log(<span class="tok-str">"3 — microtask"</span>));
+
+console.log(<span class="tok-str">"2 — síncrono"</span>);
+
+<span class="tok-com">// ordem real de saída: 1, 2, 3, 4
+// microtasks sempre esvaziam antes da próxima macrotask</span></code></pre>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Microtask</th><th>Macrotask</th></tr></thead>
+            <tbody>
+              <tr><td>Exemplos</td><td><code>Promise.then</code>, <code>queueMicrotask</code></td><td><code>setTimeout</code>, <code>setInterval</code>, eventos de I/O</td></tr>
+              <tr><td>Prioridade</td><td>Sempre esvazia primeiro</td><td>Uma por ciclo do loop</td></tr>
+              <tr><td>Risco</td><td>Pode causar starvation de macrotasks se recursiva</td><td>Atraso perceptível se a fila estiver cheia</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Controlando frequência: debounce e throttle</h3>
+        <div class="code-block">
+          <div class="code-tag"><span>performance.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">function</span> <span class="tok-fn">debounce</span>(fn, espera) {
+  <span class="tok-kw">let</span> timer;
+  <span class="tok-kw">return</span> (...args) =&gt; {
+    clearTimeout(timer);
+    timer = setTimeout(() =&gt; fn(...args), espera);
+  };
+}
+
+<span class="tok-kw">const</span> buscarComDebounce = <span class="tok-fn">debounce</span>(termo =&gt; <span class="tok-fn">buscarApi</span>(termo), <span class="tok-num">300</span>);
+inputBusca.<span class="tok-fn">addEventListener</span>(<span class="tok-str">"input"</span>, e =&gt; buscarComDebounce(e.target.value));</code></pre>
+        </div>
+
+        <h3>APIs de observação nativas</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>API</th><th>Observa</th></tr></thead>
+            <tbody>
+              <tr><td><code>IntersectionObserver</code></td><td>Quando um elemento entra/sai da viewport — base de lazy loading e scroll infinito</td></tr>
+              <tr><td><code>MutationObserver</code></td><td>Alterações na árvore do DOM</td></tr>
+              <tr><td><code>ResizeObserver</code></td><td>Mudanças de tamanho de um elemento</td></tr>
+              <tr><td><code>Web Workers</code></td><td>Executam JS em uma thread separada, sem travar a UI</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--warn">
+          <h4>Vazamentos de memória comuns</h4>
+          <p>Listeners de evento nunca removidos, closures que retêm referências desnecessárias e <code>setInterval</code> sem <code>clearInterval</code> são as três causas mais frequentes de memory leak em aplicações JavaScript de longa duração.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 13 — APENDICE -->
+    <section class="page" id="apendice">
+      <div class="page-inner">
+        <div class="eyebrow">Apêndice</div>
+        <h2 class="h-module">Boas Práticas &amp; <em>Ferramentas</em></h2>
+
+        <h3>Checklist de qualidade antes do deploy</h3>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td>✓</td><td>Código passa em ESLint sem warnings críticos</td></tr>
+              <tr><td>✓</td><td><code>===</code> usado em vez de <code>==</code> em todas as comparações</td></tr>
+              <tr><td>✓</td><td>Nenhum <code>console.log</code> esquecido em produção</td></tr>
+              <tr><td>✓</td><td>Promises sempre com tratamento de erro (<code>.catch</code> ou <code>try/catch</code>)</td></tr>
+              <tr><td>✓</td><td>Event listeners removidos quando o componente é destruído</td></tr>
+              <tr><td>✓</td><td>Testes cobrindo os fluxos críticos da aplicação</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ferramentas recomendadas</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Categoria</th><th>Ferramenta</th><th>Uso</th></tr></thead>
+            <tbody>
+              <tr><td>Linting</td><td>ESLint</td><td>Detecta erros e impõe padrões de código</td></tr>
+              <tr><td>Formatação</td><td>Prettier</td><td>Formata código automaticamente e consistentemente</td></tr>
+              <tr><td>Testes</td><td>Vitest / Jest</td><td>Testes unitários e de integração</td></tr>
+              <tr><td>Runtime</td><td>Node.js</td><td>Executa JavaScript fora do navegador</td></tr>
+              <tr><td>Debug</td><td>Chrome DevTools</td><td>Breakpoints, profiling de performance e memória</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <h4>Nota final</h4>
+          <p>JavaScript evolui rápido, mas os fundamentos deste material — escopo, closures, protótipos, event loop — não mudam. Domine a base; os recursos de ponta se tornam triviais de aprender quando a fundação está sólida.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 14 — GLOSSARIO -->
+    <section class="page" id="glossario">
+      <div class="page-inner">
+        <div class="eyebrow">Referência rápida</div>
+        <h2 class="h-module">Glossário</h2>
+        <p class="lede">Termos técnicos usados ao longo da apostila, para consulta rápida sem precisar voltar ao módulo original.</p>
+
+        <dl class="gloss-grid">
+          <div class="gloss-item"><dt>Hoisting</dt><dd>Comportamento em que declarações de variáveis e funções são "içadas" para o topo do escopo antes da execução.</dd></div>
+          <div class="gloss-item"><dt>Closure</dt><dd>Função que retém acesso às variáveis do escopo em que foi criada, mesmo após esse escopo terminar.</dd></div>
+          <div class="gloss-item"><dt>Event Loop</dt><dd>Mecanismo que gerencia a execução de código, coleta e processa eventos, e executa tarefas da fila.</dd></div>
+          <div class="gloss-item"><dt>Promise</dt><dd>Objeto que representa a eventual conclusão (ou falha) de uma operação assíncrona.</dd></div>
+          <div class="gloss-item"><dt>Protótipo</dt><dd>Objeto do qual outro objeto herda propriedades e métodos via a cadeia de protótipos.</dd></div>
+          <div class="gloss-item"><dt>this</dt><dd>Referência dinâmica ao contexto de execução de uma função, determinada por como ela é chamada.</dd></div>
+          <div class="gloss-item"><dt>Callback</dt><dd>Função passada como argumento para ser executada posteriormente por outra função.</dd></div>
+          <div class="gloss-item"><dt>Generator</dt><dd>Função especial (<code>function*</code>) capaz de pausar e retomar sua execução com <code>yield</code>.</dd></div>
+          <div class="gloss-item"><dt>Microtask</dt><dd>Tarefa de altíssima prioridade (promises) executada antes de qualquer macrotask.</dd></div>
+          <div class="gloss-item"><dt>Macrotask</dt><dd>Tarefa de prioridade normal (timers, eventos de I/O), processada uma por ciclo do event loop.</dd></div>
+          <div class="gloss-item"><dt>Módulo ES6</dt><dd>Arquivo JavaScript com escopo isolado, que exporta e importa código via <code>import</code>/<code>export</code>.</dd></div>
+          <div class="gloss-item"><dt>Currying</dt><dd>Técnica funcional que transforma uma função de múltiplos argumentos em uma sequência de funções de um argumento.</dd></div>
+          <div class="gloss-item"><dt>Debounce</dt><dd>Padrão que atrasa a execução de uma função até que um intervalo de inatividade tenha passado.</dd></div>
+          <div class="gloss-item"><dt>WeakMap</dt><dd>Estrutura de chave-valor cujas chaves são referenciadas fracamente, permitindo coleta de lixo automática.</dd></div>
+          <div class="gloss-item"><dt>Garbage Collection</dt><dd>Processo automático do motor que libera memória de objetos que não têm mais referências alcançáveis.</dd></div>
+          <div class="gloss-item"><dt>IIFE</dt><dd>Immediately Invoked Function Expression — função anônima executada imediatamente após ser definida.</dd></div>
+        </dl>
+
+        <div class="closing" style="margin-top:56px;padding-top:32px;border-top:1px solid var(--line);">
+          <h3><em>Essencial: JavaScript</em></h3>
+          <p>By OJuanDev — Escrito para quem constrói a web na raiz. Use ← para voltar ao início.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- bottom nav -->
+<div class="bottombar">
+  <div class="navbtns">
+    <button class="arrowbtn" id="prevBtn">‹</button>
+    <button class="arrowbtn" id="nextBtn">›</button>
+  </div>
+  <div class="counter">
+    <span id="counterText"><b>01</b> / 15</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</div>
+
+<!-- TOC modal -->
+<div class="modal-overlay" id="tocOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Ir para...</h3>
+      <button class="modal-close" id="closeToc">✕</button>
+    </div>
+    <ul class="jump-list" id="jumpList"></ul>
+  </div>
+</div>
+
+<!-- break modal -->
+<div class="break-overlay" id="breakOverlay">
+  <div class="break-box">
+    <div class="break-icon">⏰</div>
+    <h3>Hora da Pausa!</h3>
+    <p>Seu ciclo de foco terminou. Descanse um pouco.</p>
+    <div class="break-count">Próximo ciclo inicia em: <span id="breakCountdown">5</span>s</div>
+    <button class="tbtn tbtn--primary" id="btnBreakOk">Ok, entendi</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- page data & navigation ---------------- */
+  var pageMeta = [
+    { title:"Capa", desc:"Abertura" },
+    { title:"Sumário", desc:"Índice geral" },
+    { title:"Lofi + Pomodoro", desc:"Ambiente de foco" },
+    { title:"Fundamentos do JavaScript", desc:"Variáveis, tipos e coerção" },
+    { title:"Estruturas de Controle & Funções", desc:"Condicionais, laços e funções" },
+    { title:"Arrays, Objetos & Desestruturação", desc:"Métodos funcionais e spread" },
+    { title:"DOM, Eventos & Manipulação", desc:"Seleção, criação e delegação" },
+    { title:"Escopo, Closures & this", desc:"O motor por dentro" },
+    { title:"Assincronismo: Promises & Async/Await", desc:"Callbacks a async/await" },
+    { title:"Protótipos & Classes", desc:"Herança prototípica" },
+    { title:"Módulos ES6+ & Ecossistema", desc:"import/export e ferramentas" },
+    { title:"Iteradores, Generators & Funcional", desc:"yield, currying e composição" },
+    { title:"Event Loop, Performance & APIs", desc:"Microtasks, macrotasks e observers" },
+    { title:"Apêndice", desc:"Checklist e ferramentas" },
+    { title:"Glossário", desc:"Termos técnicos" }
+  ];
+
+  var track = document.getElementById('track');
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var total = pages.length;
+  var current = 0;
+
+  var counterText = document.getElementById('counterText');
+  var progressFill = document.getElementById('progressFill');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+  function render(){
+    track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+    counterText.innerHTML = '<b>' + pad(current + 1) + '</b> / ' + total;
+    progressFill.style.width = ((current + 1) / total * 100) + '%';
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+  }
+
+  function goTo(index){
+    current = Math.max(0, Math.min(total - 1, index));
+    render();
+  }
+
+  function nav(delta){ goTo(current + delta); }
+
+  prevBtn.addEventListener('click', function(){ nav(-1); });
+  nextBtn.addEventListener('click', function(){ nav(1); });
+
+  window.addEventListener('keydown', function(e){
+    var tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight') { nav(1); }
+    else if (e.key === 'ArrowLeft') { nav(-1); }
+    else if (e.key === 'Escape') { closeAllModals(); }
+  });
+
+  /* wheel: only paginate when the active page is scrolled to its edge */
+  var wheelLock = false;
+  window.addEventListener('wheel', function(e){
+    if (tocOverlay.classList.contains('open')) return;
+    var pageEl = pages[current];
+    var atTop = pageEl.scrollTop <= 1;
+    var atBottom = Math.ceil(pageEl.scrollTop + pageEl.clientHeight) >= pageEl.scrollHeight - 1;
+
+    if (e.deltaY > 15 && atBottom && !wheelLock) {
+      wheelLock = true; e.preventDefault();
+      nav(1);
+      setTimeout(function(){ wheelLock = false; }, 650);
+    } else if (e.deltaY < -15 && atTop && !wheelLock) {
+      wheelLock = true; e.preventDefault();
+      nav(-1);
+      setTimeout(function(){ wheelLock = false; }, 650);
+    }
+  }, { passive:false });
+
+  /* basic touch swipe */
+  var touchStartX = null, touchStartY = null;
+  window.addEventListener('touchstart', function(e){
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  window.addEventListener('touchend', function(e){
+    if (touchStartX === null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      var pageEl = pages[current];
+      var atTop = pageEl.scrollTop <= 1;
+      var atBottom = Math.ceil(pageEl.scrollTop + pageEl.clientHeight) >= pageEl.scrollHeight - 1;
+      if (dx < 0 && atBottom) nav(1);
+      else if (dx > 0 && atTop) nav(-1);
+    }
+    touchStartX = null; touchStartY = null;
+  }, {passive:true});
+
+  /* ---------------- TOC (sumário page + modal) ---------------- */
+  var tocListMain = document.getElementById('tocListMain');
+  pageMeta.forEach(function(m, i){
+    if (i < 3) return; // skip capa/sumario/pomodoro from the in-page sumário list
+    var li = document.createElement('li');
+    var num = i - 2;
+    li.innerHTML = '<a href="#"><span class="toc-num">' + pad(num) + '</span>' +
+      '<span class="toc-title">' + m.title + '</span>' +
+      '<span class="toc-desc">' + m.desc + '</span></a>';
+    li.querySelector('a').addEventListener('click', function(e){ e.preventDefault(); goTo(i); });
+    tocListMain.appendChild(li);
+  });
+
+  var jumpList = document.getElementById('jumpList');
+  pageMeta.forEach(function(m, i){
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.innerHTML = '<span class="jump-num">' + pad(i + 1) + '</span><span>' + m.title + '</span>';
+    btn.addEventListener('click', function(){ goTo(i); closeAllModals(); });
+    li.appendChild(btn);
+    jumpList.appendChild(li);
+  });
+
+  var tocOverlay = document.getElementById('tocOverlay');
+  document.getElementById('openToc').addEventListener('click', function(){ tocOverlay.classList.add('open'); });
+  document.getElementById('closeToc').addEventListener('click', function(){ tocOverlay.classList.remove('open'); });
+  tocOverlay.addEventListener('click', function(e){ if (e.target === tocOverlay) tocOverlay.classList.remove('open'); });
+
+  function closeAllModals(){
+    tocOverlay.classList.remove('open');
+  }
+
+  render();
+
+  /* ---------------- Pomodoro ---------------- */
+  var focusInput = document.getElementById('focusMin');
+  var breakInput = document.getElementById('breakMin');
+  var longBreakInput = document.getElementById('longBreakMin');
+  var autoModeInput = document.getElementById('autoMode');
+  var timerDisplay = document.getElementById('timerDisplay');
+  var timerModeLabel = document.getElementById('timerModeLabel');
+  var cycleCountEl = document.getElementById('cycleCount');
+  var btnStart = document.getElementById('btnStart');
+  var btnReset = document.getElementById('btnReset');
+  var btnSkip = document.getElementById('btnSkip');
+  var breakOverlay = document.getElementById('breakOverlay');
+  var breakCountdownEl = document.getElementById('breakCountdown');
+  var btnBreakOk = document.getElementById('btnBreakOk');
+
+  var mode = 'focus'; // focus | break | longbreak
+  var secondsLeft = 25 * 60;
+  var running = false;
+  var tickHandle = null;
+  var cycles = 0;
+
+  function minutesFor(m){
+    if (m === 'focus') return parseInt(focusInput.value, 10) || 25;
+    if (m === 'break') return parseInt(breakInput.value, 10) || 5;
+    return parseInt(longBreakInput.value, 10) || 15;
+  }
+
+  function labelFor(m){
+    if (m === 'focus') return '⚡ Foco';
+    if (m === 'break') return '☕ Pausa';
+    return '🌿 Pausa Longa';
+  }
+
+  function updateDisplay(){
+    var min = Math.floor(secondsLeft / 60);
+    var sec = secondsLeft % 60;
+    timerDisplay.textContent = pad(min) + ':' + pad(sec);
+    timerModeLabel.textContent = labelFor(mode);
+  }
+
+  function resetToMode(m){
+    mode = m;
+    secondsLeft = minutesFor(m) * 60;
+    updateDisplay();
+  }
+
+  function stopTimer(){
+    running = false;
+    clearInterval(tickHandle);
+    btnStart.textContent = '▶ Iniciar';
+  }
+
+  function startTimer(){
+    if (running) { stopTimer(); return; }
+    running = true;
+    btnStart.textContent = '⏸ Pausar';
+    tickHandle = setInterval(function(){
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        clearInterval(tickHandle);
+        running = false;
+        btnStart.textContent = '▶ Iniciar';
+        handleCycleEnd();
+      } else {
+        updateDisplay();
+      }
+    }, 1000);
+  }
+
+  function handleCycleEnd(){
+    if (mode === 'focus') {
+      cycles++;
+      cycleCountEl.textContent = cycles;
+      openBreakModal();
+    } else {
+      resetToMode('focus');
+      if (autoModeInput.checked) startTimer();
+    }
+  }
+
+  var breakCountdownHandle = null;
+  function openBreakModal(){
+    breakOverlay.classList.add('open');
+    var n = 5;
+    breakCountdownEl.textContent = n;
+    clearInterval(breakCountdownHandle);
+    breakCountdownHandle = setInterval(function(){
+      n--;
+      breakCountdownEl.textContent = Math.max(n, 0);
+      if (n <= 0) { clearInterval(breakCountdownHandle); closeBreakModal(); }
+    }, 1000);
+  }
+
+  function closeBreakModal(){
+    breakOverlay.classList.remove('open');
+    clearInterval(breakCountdownHandle);
+    var nextMode = (cycles > 0 && cycles % 4 === 0) ? 'longbreak' : 'break';
+    resetToMode(nextMode);
+    if (autoModeInput.checked) startTimer();
+  }
+
+  btnBreakOk.addEventListener('click', closeBreakModal);
+  btnStart.addEventListener('click', startTimer);
+  btnReset.addEventListener('click', function(){ stopTimer(); resetToMode('focus'); });
+  btnSkip.addEventListener('click', function(){
+    stopTimer();
+    if (mode === 'focus') { handleCycleEnd(); }
+    else { resetToMode('focus'); }
+  });
+
+  [focusInput, breakInput, longBreakInput].forEach(function(inp){
+    inp.addEventListener('change', function(){
+      if (!running) resetToMode(mode);
+    });
+  });
+
+  updateDisplay();
+
+})();
+</script>
+</body>
+</html>
